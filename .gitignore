@@ -14,7 +14,8 @@ out/
 
 # Rust
 target/
-Cargo.lock
+# Note: Cargo.lock is intentionally NOT ignored.
+# For binary applications (like Tauri), it must be committed for reproducible builds.
 
 # Environment
 .env
