@@ -4,6 +4,7 @@ import cors from 'cors'
 import { initDb } from './db'
 import { activateRouter } from './routes/activate'
 import { statusRouter } from './routes/status'
+import { adminRouter } from './routes/admin'
 
 const app = express()
 const PORT = process.env['PORT'] ?? 3001
@@ -13,6 +14,7 @@ app.use(express.json())
 
 app.use('/activate', activateRouter)
 app.use('/license', statusRouter)
+app.use('/admin', adminRouter)
 
 app.get('/health', (_req, res) => res.json({ ok: true }))
 

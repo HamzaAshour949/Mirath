@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db'
+import { signPayload } from '../crypto'
 
 export const activateRouter = Router()
 
@@ -9,56 +10,70 @@ interface FingerprintComponents {
   cpu: string
   motherboard: string
   mac: string
+  hash: string
 }
 
 interface ActivateBody {
   purchaseToken: string
-  fingerprint: FingerprintComponents
   email: string
+  fingerprint: FingerprintComponents
 }
 
-/**
- * POST /activate
- *
- * Validates a purchase token, signs a license with the Ed25519 private key,
- * stores it in the DB, and returns the signed license JSON.
- *
- * The signed license JSON is stored by the Tauri app as license.lic.
- *
- * TODO: implement Ed25519 signing with @noble/ed25519
- * TODO: implement purchase token validation (Stripe + x402)
- */
-activateRouter.post('/', async (req, res) => {
-  const { purchaseToken, fingerprint, email } = req.body as ActivateBody
+activateRouter.post('/', (req, res) => {
+  const { purchaseToken, email, fingerprint } = req.body as ActivateBody
 
-  if (!purchaseToken || !fingerprint || !email) {
-    return res.status(400).json({ error: 'Missing required fields' })
+  if (
+    !purchaseToken ||
+    !email ||
+    !fingerprint ||
+    !fingerprint.machine_id ||
+    !fingerprint.cpu ||
+    !fingerprint.motherboard ||
+    !fingerprint.mac ||
+    !fingerprint.hash
+  ) {
+    res.status(400).json({ error: 'Missing required fields' })
+    return
   }
 
-  // TODO: validate purchaseToken against Stripe/x402
-  // For now, accept any non-empty token (remove in production)
+  const existing = db
+    .prepare('SELECT id FROM licenses WHERE purchase_ref = ?')
+    .get(purchaseToken) as { id: string } | undefined
 
-  const licenseId = uuidv4()
-  const issuedAt = Math.floor(Date.now() / 1000)
+  if (existing) {
+    res.status(409).json({ error: 'License already issued for this purchase token' })
+    return
+  }
 
-  const payload = {
-    lid: licenseId,
-    pid: 'mirath-v1',
-    fp: fingerprint,
-    iat: issuedAt,
+  const purchaseMethod = purchaseToken.startsWith('pi_') ? 'stripe' : 'x402'
+  const lid = uuidv4()
+  const iat = Math.floor(Date.now() / 1000)
+
+  const signingPayload = `${lid}|${email}|${fingerprint.hash}|${iat}`
+  const sig = signPayload(signingPayload)
+
+  const licensePayload = {
+    lid,
+    email,
+    pid: purchaseToken,
+    fp: {
+      machine_id: fingerprint.machine_id,
+      cpu: fingerprint.cpu,
+      motherboard: fingerprint.motherboard,
+      mac: fingerprint.mac,
+      hash: fingerprint.hash,
+    },
+    iat,
     license_type: 'perpetual',
+    sig,
   }
 
-  // TODO: sign payload with Ed25519 private key from process.env.ED25519_PRIVATE_KEY
-  const sig = 'NOT_YET_SIGNED'
+  const licenseJson = JSON.stringify(licensePayload)
 
-  const licenseFile = { ...payload, sig }
-
-  // Store in DB
   db.prepare(`
     INSERT INTO licenses (id, email, fingerprint_hash, issued_at, purchase_ref, purchase_method)
     VALUES (?, ?, ?, ?, ?, ?)
-  `).run(licenseId, email, JSON.stringify(fingerprint), issuedAt, purchaseToken, 'stripe')
+  `).run(lid, email, fingerprint.hash, iat, purchaseToken, purchaseMethod)
 
-  return res.json(licenseFile)
+  res.json({ license: licenseJson })
 })
