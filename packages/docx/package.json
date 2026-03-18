@@ -1,0 +1,28 @@
+{
+  "name": "@mirath/docx",
+  "version": "0.0.1",
+  "private": true,
+  "description": "DOCX report generation with Arabic RTL support",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mirath/core": "workspace:*",
+    "docxtemplater": "^3.50.0",
+    "pizzip": "^3.1.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
