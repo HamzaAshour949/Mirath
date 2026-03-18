@@ -1,0 +1,29 @@
+{
+  "name": "@mirath/i18n",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Arabic + English translations (LinguiJS)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./locales/*": "./locales/*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@lingui/core": "^4.11.0",
+    "@lingui/react": "^4.11.0"
+  },
+  "devDependencies": {
+    "@lingui/cli": "^4.11.0",
+    "typescript": "^5.4.0"
+  }
+}
