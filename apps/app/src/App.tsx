@@ -1,35 +1,54 @@
 import { useState, useEffect } from 'react'
-import { setupI18n, type Locale } from '@mirath/i18n'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { I18nProvider } from '@lingui/react'
+import { invoke } from '@tauri-apps/api/core'
+import { i18n, setupI18n, type Locale } from '@mirath/i18n'
+import { LicenseActivationScreen } from './screens/LicenseActivationScreen'
+import { CaseListScreen } from './screens/CaseListScreen'
+import { CaseEditorScreen } from './screens/CaseEditorScreen'
 
-/**
- * Root app component.
- *
- * Responsibilities:
- * - Check license on startup (via Tauri command `check_license`)
- * - Set up i18n locale
- * - Route between: LicenseActivation, MainApp screens
- *
- * TODO: implement license check, routing, and main layout.
- */
+interface LicenseStatus {
+  valid: boolean
+  licenseId: string
+  email: string
+}
+
 export function App() {
-  const [locale, setLocale] = useState<Locale>('en')
-  const [_licenseValid, setLicenseValid] = useState<boolean | null>(null)
+  const [locale] = useState<Locale>('en')
+  const [i18nReady, setI18nReady] = useState(false)
+  const [licenseValid, setLicenseValid] = useState<boolean | null>(null)
 
   useEffect(() => {
-    setupI18n(locale)
+    setupI18n(locale).then(() => setI18nReady(true))
   }, [locale])
 
   useEffect(() => {
-    // TODO: call Tauri command `check_license` on startup
-    // invoke('check_license').then(valid => setLicenseValid(valid))
-    setLicenseValid(false)
+    invoke<LicenseStatus>('check_license')
+      .then((status) => setLicenseValid(status.valid))
+      .catch(() => setLicenseValid(false))
   }, [])
 
-  void setLocale // will be wired to LanguageToggle
+  if (!i18nReady || licenseValid === null) {
+    return null
+  }
+
+  if (!licenseValid) {
+    return (
+      <I18nProvider i18n={i18n}>
+        <LicenseActivationScreen onActivated={() => setLicenseValid(true)} />
+      </I18nProvider>
+    )
+  }
 
   return (
-    <div>
-      <p>Mirath — boilerplate. Implement App.tsx.</p>
-    </div>
+    <I18nProvider i18n={i18n}>
+      <MemoryRouter>
+        <Routes>
+          <Route path="/" element={<CaseListScreen />} />
+          <Route path="/case/new" element={<CaseEditorScreen />} />
+          <Route path="/case/:id" element={<CaseEditorScreen />} />
+        </Routes>
+      </MemoryRouter>
+    </I18nProvider>
   )
 }

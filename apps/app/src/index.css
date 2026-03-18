@@ -1,3 +1,6 @@
+/* ─── Fonts ───────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
+
 /* ─── Global Reset & Base ─────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
