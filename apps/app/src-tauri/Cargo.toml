@@ -1,0 +1,42 @@
+[package]
+name = "mirath-app"
+version = "0.0.1"
+description = "Mirath — Islamic Inheritance Calculator"
+authors = []
+license = ""
+repository = ""
+default-run = "mirath-app"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "mirath_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Hardware fingerprinting
+sysinfo = "0.31"
+
+# Cryptography (license verification)
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+sha2 = "0.10"
+hex = "0.4"
+
+# License file storage
+dirs = "5"
+uuid = { version = "1", features = ["v4"] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
