@@ -1,0 +1,28 @@
+{
+  "name": "@mirath/pdf",
+  "version": "0.0.1",
+  "private": true,
+  "description": "PDF report generation with Arabic RTL support",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mirath/core": "workspace:*",
+    "pdfmake": "^0.2.10"
+  },
+  "devDependencies": {
+    "@types/pdfmake": "^0.2.9",
+    "typescript": "^5.4.0"
+  }
+}
