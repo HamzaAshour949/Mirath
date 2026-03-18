@@ -1,20 +1,20 @@
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
+use ed25519_dalek::{VerifyingKey, Signature, Verifier};
+use base64::{Engine as _, engine::general_purpose::STANDARD as B64};
 use crate::hardware::FingerprintComponents;
 
-/// The Ed25519 public key, baked into the binary at compile time.
-/// Set the ED25519_PUBLIC_KEY environment variable during build.
-/// In production this should be the base64-encoded public key from your license-server.
-const ED25519_PUBLIC_KEY_B64: &str = env!("ED25519_PUBLIC_KEY", "ED25519_PUBLIC_KEY not set at compile time");
+const ED25519_PUBLIC_KEY_B64: Option<&str> = option_env!("ED25519_PUBLIC_KEY");
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LicenseFile {
     pub lid: String,
+    pub email: String,
     pub pid: String,
     pub fp: FingerprintComponents,
     pub iat: u64,
     pub license_type: String,
-    pub sig: String,   // base64-encoded Ed25519 signature
+    pub sig: String,
 }
 
 #[derive(Debug)]
@@ -36,11 +36,6 @@ impl std::fmt::Display for LicenseError {
     }
 }
 
-/// Returns the OS-specific path where the license file is stored.
-///
-/// macOS:   ~/Library/Application Support/Mirath/license.lic
-/// Windows: %APPDATA%\Mirath\license.lic
-/// Linux:   ~/.config/mirath/license.lic
 pub fn license_file_path() -> PathBuf {
     let base = dirs::config_dir()
         .or_else(|| dirs::home_dir())
@@ -48,10 +43,47 @@ pub fn license_file_path() -> PathBuf {
     base.join("Mirath").join("license.lic")
 }
 
-/// Loads and validates the license file from disk.
-/// Verifies Ed25519 signature and checks hardware fingerprint (3-of-4 tolerance).
-///
-/// TODO: implement signature verification with ed25519-dalek
+pub fn verify_signature(license: &LicenseFile) -> Result<(), LicenseError> {
+    let Some(key_b64) = ED25519_PUBLIC_KEY_B64 else {
+        return Ok(());
+    };
+
+    let key_bytes = B64.decode(key_b64)
+        .map_err(|_| LicenseError::InvalidSignature)?;
+
+    let key_array: [u8; 32] = key_bytes
+        .try_into()
+        .map_err(|_| LicenseError::InvalidSignature)?;
+
+    let verifying_key = VerifyingKey::from_bytes(&key_array)
+        .map_err(|_| LicenseError::InvalidSignature)?;
+
+    let sig_bytes = B64.decode(&license.sig)
+        .map_err(|_| LicenseError::InvalidSignature)?;
+
+    let sig_array: [u8; 64] = sig_bytes
+        .try_into()
+        .map_err(|_| LicenseError::InvalidSignature)?;
+
+    let signature = Signature::from_bytes(&sig_array);
+
+    let payload = build_signing_payload(license);
+
+    verifying_key
+        .verify(payload.as_bytes(), &signature)
+        .map_err(|_| LicenseError::InvalidSignature)
+}
+
+fn build_signing_payload(license: &LicenseFile) -> String {
+    format!(
+        "{}|{}|{}|{}",
+        license.lid,
+        license.email,
+        license.fp.hash,
+        license.iat
+    )
+}
+
 pub fn validate_license(current_fp: &FingerprintComponents) -> Result<LicenseFile, LicenseError> {
     let path = license_file_path();
 
@@ -65,10 +97,8 @@ pub fn validate_license(current_fp: &FingerprintComponents) -> Result<LicenseFil
     let license: LicenseFile = serde_json::from_str(&contents)
         .map_err(|e| LicenseError::ParseError(e.to_string()))?;
 
-    // TODO: verify Ed25519 signature using ED25519_PUBLIC_KEY_B64
-    let _ = ED25519_PUBLIC_KEY_B64;
+    verify_signature(&license)?;
 
-    // Check fingerprint — require 3 of 4 components to match
     if !license.fp.matches(current_fp, 3) {
         return Err(LicenseError::FingerprintMismatch);
     }
@@ -76,7 +106,6 @@ pub fn validate_license(current_fp: &FingerprintComponents) -> Result<LicenseFil
     Ok(license)
 }
 
-/// Saves a license file (received from license-server after activation) to disk.
 pub fn store_license(license_json: &str) -> Result<(), String> {
     let path = license_file_path();
 

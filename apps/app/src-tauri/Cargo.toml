@@ -19,6 +19,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
@@ -29,6 +30,7 @@ sysinfo = "0.31"
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 sha2 = "0.10"
 hex = "0.4"
+base64 = "0.22"
 
 # License file storage
 dirs = "5"

@@ -1,55 +1,86 @@
 use tauri::command;
+use tauri_plugin_dialog::DialogExt;
 use crate::hardware::{collect_fingerprint, FingerprintComponents};
-use crate::license::{validate_license, store_license};
+use crate::license::{validate_license, store_license, verify_signature, LicenseFile};
 
-/// Returns the current machine's hardware fingerprint components.
-/// Called from React to display the hardware ID during license activation.
+#[derive(serde::Serialize)]
+pub struct LicenseStatus {
+    pub valid: bool,
+    #[serde(rename = "licenseId")]
+    pub license_id: String,
+    pub email: String,
+}
+
 #[command]
 pub fn get_hardware_fingerprint() -> FingerprintComponents {
     collect_fingerprint()
 }
 
-/// Checks whether a valid license is installed for this hardware.
-/// Called on every app startup.
 #[command]
-pub fn check_license() -> bool {
+pub fn check_license() -> LicenseStatus {
     let fp = collect_fingerprint();
-    validate_license(&fp).is_ok()
+    match validate_license(&fp) {
+        Ok(lic) => LicenseStatus {
+            valid: true,
+            license_id: lic.lid,
+            email: lic.email,
+        },
+        Err(_) => LicenseStatus {
+            valid: false,
+            license_id: String::new(),
+            email: String::new(),
+        },
+    }
 }
 
-/// Stores a license file received from the license-server after purchase.
-/// The React frontend calls this after a successful /activate response.
 #[command]
 pub fn activate_license(license_json: String) -> Result<(), String> {
-    // Validate before storing
-    let fp = collect_fingerprint();
-    let license: crate::license::LicenseFile = serde_json::from_str(&license_json)
+    let license: LicenseFile = serde_json::from_str(&license_json)
         .map_err(|e| e.to_string())?;
 
+    verify_signature(&license).map_err(|e| e.to_string())?;
+
+    let fp = collect_fingerprint();
     if !license.fp.matches(&fp, 3) {
         return Err("License fingerprint does not match this hardware".to_string());
     }
 
-    // TODO: verify Ed25519 signature before storing
-
     store_license(&license_json)
 }
 
-/// Reads and decrypts a .mirath file from disk.
-/// Returns the raw JSON content (decryption handled in Rust, JS receives plain JSON).
-///
-/// TODO: implement AES-256-GCM decryption
 #[command]
-pub async fn open_mirath_file(path: String) -> Result<String, String> {
-    let _ = path;
-    Err("open_mirath_file not yet implemented".to_string())
+pub async fn open_mirath_file(app: tauri::AppHandle) -> Result<Vec<u8>, String> {
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Mirath Case", &["mirath"])
+        .blocking_pick_file();
+
+    let Some(file_path) = file_path else {
+        return Err("No file selected".to_string());
+    };
+
+    let path: std::path::PathBuf = file_path.into();
+    std::fs::read(path).map_err(|e| e.to_string())
 }
 
-/// Encrypts and saves case data as a .mirath file to disk.
-///
-/// TODO: implement AES-256-GCM encryption
 #[command]
-pub async fn save_mirath_file(path: String, content_json: String) -> Result<(), String> {
-    let _ = (path, content_json);
-    Err("save_mirath_file not yet implemented".to_string())
+pub async fn save_mirath_file(
+    app: tauri::AppHandle,
+    filename: String,
+    bytes: Vec<u8>,
+) -> Result<(), String> {
+    let file_path = app
+        .dialog()
+        .file()
+        .set_file_name(&filename)
+        .add_filter("Mirath Case", &["mirath"])
+        .blocking_save_file();
+
+    let Some(file_path) = file_path else {
+        return Err("No save location selected".to_string());
+    };
+
+    let path: std::path::PathBuf = file_path.into();
+    std::fs::write(path, &bytes).map_err(|e| e.to_string())
 }
