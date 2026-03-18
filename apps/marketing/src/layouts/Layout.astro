@@ -1,0 +1,20 @@
+---
+interface Props {
+  title: string
+  lang?: 'en' | 'ar'
+}
+const { title, lang = 'en' } = Astro.props
+const isRTL = lang === 'ar'
+---
+<!doctype html>
+<html lang={lang} dir={isRTL ? 'rtl' : 'ltr'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Mirath — Professional Islamic Inheritance Calculator" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
