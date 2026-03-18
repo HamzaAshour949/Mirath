@@ -8,10 +8,6 @@ function fraction(n: number, d: number) {
   return { numerator: n, denominator: d }
 }
 
-function approxAmount(amount: number | undefined, expected: number, tol = 0.01): boolean {
-  return Math.abs((amount ?? 0) - expected) <= tol
-}
-
 // ─── 1. Basic fixed shares ─────────────────────────────────────────────────────
 
 describe('husband and wife shares', () => {

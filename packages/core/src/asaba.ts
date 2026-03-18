@@ -1,6 +1,6 @@
 import type { Heir, Madhab } from './types'
 import type { Fraction } from './types'
-import { add, compare, reduce, ZERO, SIXTH, THIRD } from './fractions'
+import { compare, reduce } from './fractions'
 
 export interface AsabaResult {
   heirId: string
@@ -148,9 +148,7 @@ export function assignAsaba(
       // 1/3 of total residue (as fraction of residue)
       const gfThirdOfEstate: Fraction = { numerator: 1, denominator: 3 }
 
-      // 1/6 of total estate as fraction of residue = (1/6) / residue
-      const residueFrac: Fraction = { numerator: residueN, denominator: residueD }
-      // gfSixthOfEstate as share of residue: (1/6) / residueFrac = residueD / (6 * residueN)
+      // gfSixthOfEstate as share of residue: (1/6) / (residueN/residueD) = residueD / (6 * residueN)
       const gfSixthAsResidueShare: Fraction = reduce({ numerator: residueD, denominator: 6 * residueN })
 
       // Best for grandfather:

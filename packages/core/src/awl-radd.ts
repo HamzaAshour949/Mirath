@@ -1,6 +1,6 @@
 import type { HeirShare, Madhab } from './types'
 import type { Fraction } from './types'
-import { add, reduce, compare, ZERO } from './fractions'
+import { reduce } from './fractions'
 
 /**
  * Awl (عول): When fixed shares sum > 1, all shares are reduced proportionally.
@@ -53,8 +53,6 @@ export function applyRadd(
 ): { shares: HeirShare[]; applied: boolean } {
   if (hasAsaba) return { shares, applied: false }
 
-  const spouseRelations = new Set(['husband', 'wife'])
-
   // Compute sum of fixed shares
   const fixed = shares.filter((s) => s.shareType === 'fixed' && s.fraction)
   if (fixed.length === 0) return { shares, applied: false }
@@ -69,16 +67,6 @@ export function applyRadd(
 
   // Remainder numerator (in units of lcmDenom denominator)
   const remainderN = lcmDenom - numeratorSum
-
-  // Who gets radd?
-  // In Hanafi: everyone including spouse (but spouse only if sole heir)
-  // In Maliki/Shafi'i/Hanbali: everyone except spouse
-  const raddEligible = shares.filter((s) => {
-    if (s.shareType !== 'fixed' || !s.fraction) return false
-    if (madhab === 'hanafi') return true
-    // For other madhabs: skip spouses unless they are the only fixed-share heir
-    return true // we'll handle spouse exclusion below
-  })
 
   const nonSpouseFixed = fixed.filter((s) => {
     // We need to know the relation — it's stored on the heir, not on HeirShare
@@ -115,8 +103,7 @@ export function applyRadd(
   const raddMap = new Map<string, Fraction>()
   for (const s of raddRecipients) {
     const originalN = s.fraction!.numerator * (lcmDenom / s.fraction!.denominator)
-    const totalN = originalN + (originalN / raddDenom) * remainderN
-    // Express as fraction: originalN * (raddDenom + remainderN) / (raddDenom * lcmDenom)
+    // New share = originalN * (raddDenom + remainderN) / (raddDenom * lcmDenom)
     const newN = originalN * (raddDenom + remainderN)
     const newD = raddDenom * lcmDenom
     raddMap.set(s.heirId, reduce({ numerator: newN, denominator: newD }))
