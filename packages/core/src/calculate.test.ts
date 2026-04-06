@@ -577,3 +577,156 @@ describe('predeceased heirs', () => {
     expect(shareOf(result.shares, father)?.shareType).toBe('residuary')
   })
 })
+
+// ─── 14. Complex multi-heir scenarios ─────────────────────────────────────────
+
+describe('complex multi-heir scenarios', () => {
+  it('wife + 2 daughters + mother + father (classic case)', () => {
+    const wife = makeHeir('wife')
+    const d1 = makeHeir('daughter')
+    const d2 = makeHeir('daughter')
+    const mother = makeHeir('mother')
+    const father = makeHeir('father')
+    const c = makeCase('hanafi', [wife, d1, d2, mother, father], { totalEstate: 240_000 })
+    const result = calculate(c)
+    // wife = 1/8, 2 daughters = 2/3, mother = 1/6, father = 1/6 + residue
+    // Sum of fixed: 1/8 + 2/3 + 1/6 + 1/6 = 3/24 + 16/24 + 4/24 + 4/24 = 27/24 > 1
+    // This triggers awl
+    expect(result.remainderMethod).toBe('awl')
+  })
+
+  it('husband + mother + 2 full sisters (awl case)', () => {
+    const husband = makeHeir('husband')
+    const mother = makeHeir('mother')
+    const s1 = makeHeir('full_sister')
+    const s2 = makeHeir('full_sister')
+    const c = makeCase('hanafi', [husband, mother, s1, s2])
+    const result = calculate(c)
+    // husband 1/2 + mother 1/6 + 2 sisters 2/3 = 3/6 + 1/6 + 4/6 = 8/6 → awl
+    expect(result.remainderMethod).toBe('awl')
+  })
+
+  it('son blocks nephews and maternal half siblings, excludes full siblings', () => {
+    const son = makeHeir('son')
+    const fb = makeHeir('full_brother')
+    const phs = makeHeir('paternal_half_sister')
+    const mhb = makeHeir('maternal_half_brother')
+    const nephew = makeHeir('son_of_full_brother')
+    const c = makeCase('hanafi', [son, fb, phs, mhb, nephew])
+    const result = calculate(c)
+    // Son doesn't hajb-block full_brother/paternal_half_sister but they get nothing (excluded by asaba)
+    const fbShare = shareOf(result.shares, fb)
+    expect(fbShare?.shareType === 'blocked' || fbShare?.shareType === 'excluded').toBe(true)
+    const phsShare = shareOf(result.shares, phs)
+    expect(phsShare?.shareType === 'blocked' || phsShare?.shareType === 'excluded').toBe(true)
+    // Maternal half siblings and nephews are hajb-blocked by son
+    expect(shareOf(result.shares, mhb)?.shareType).toBe('blocked')
+    expect(shareOf(result.shares, nephew)?.shareType).toBe('blocked')
+  })
+
+  it('daughter + paternal_grandmother + paternal_uncle', () => {
+    const daughter = makeHeir('daughter')
+    const pgm = makeHeir('paternal_grandmother')
+    const uncle = makeHeir('paternal_uncle')
+    const c = makeCase('maliki', [daughter, pgm, uncle])
+    const result = calculate(c)
+    // daughter = 1/2, grandmother = 1/6, uncle = residue (1/3)
+    expect(fractionStr(result.shares, daughter)).toBe('1/2')
+    expect(fractionStr(result.shares, pgm)).toBe('1/6')
+    expect(shareOf(result.shares, uncle)?.shareType).toBe('residuary')
+  })
+})
+
+// ─── 15. Madhab-specific edge cases ──────────────────────────────────────────
+
+describe('madhab-specific edge cases', () => {
+  it('Hanafi: sole wife gets all via radd', () => {
+    const wife = makeHeir('wife')
+    const c = makeCase('hanafi', [wife])
+    const result = calculate(c)
+    expect(result.remainderMethod).toBe('radd')
+    expect(fractionStr(result.shares, wife)).toBe('1/1')
+  })
+
+  it('Shafii: sole wife gets only 1/4 (no radd to spouse)', () => {
+    const wife = makeHeir('wife')
+    const c = makeCase('shafii', [wife])
+    const result = calculate(c)
+    expect(fractionStr(result.shares, wife)).toBe('1/4')
+  })
+
+  it('Hanbali: sole wife gets only 1/4 (no radd to spouse)', () => {
+    const wife = makeHeir('wife')
+    const c = makeCase('hanbali', [wife])
+    const result = calculate(c)
+    expect(fractionStr(result.shares, wife)).toBe('1/4')
+  })
+
+  it('all madhabs: mother blocks maternal grandmother', () => {
+    for (const madhab of ['hanafi', 'maliki', 'shafii', 'hanbali'] as const) {
+      const mother = makeHeir('mother')
+      const mgm = makeHeir('maternal_grandmother')
+      const fb = makeHeir('full_brother')
+      const c = makeCase(madhab, [mother, mgm, fb])
+      const result = calculate(c)
+      expect(shareOf(result.shares, mgm)?.shareType).toBe('blocked')
+    }
+  })
+
+  it('all madhabs: father blocks paternal_uncle', () => {
+    for (const madhab of ['hanafi', 'maliki', 'shafii', 'hanbali'] as const) {
+      const father = makeHeir('father')
+      const uncle = makeHeir('paternal_uncle')
+      const c = makeCase(madhab, [father, uncle])
+      const result = calculate(c)
+      expect(shareOf(result.shares, uncle)?.shareType).toBe('blocked')
+    }
+  })
+})
+
+// ─── 16. Edge: single heirs ──────────────────────────────────────────────────
+
+describe('single heir cases', () => {
+  it('sole son gets entire estate', () => {
+    const son = makeHeir('son')
+    const c = makeCase('hanafi', [son], { totalEstate: 100_000 })
+    const result = calculate(c)
+    expect(shareOf(result.shares, son)?.amount).toBe(100_000)
+  })
+
+  it('sole father gets entire estate', () => {
+    const father = makeHeir('father')
+    const c = makeCase('hanafi', [father], { totalEstate: 50_000 })
+    const result = calculate(c)
+    expect(shareOf(result.shares, father)?.amount).toBe(50_000)
+  })
+
+  it('sole full_brother gets entire estate as asaba', () => {
+    const fb = makeHeir('full_brother')
+    const c = makeCase('hanafi', [fb], { totalEstate: 200_000 })
+    const result = calculate(c)
+    expect(shareOf(result.shares, fb)?.shareType).toBe('residuary')
+    expect(shareOf(result.shares, fb)?.amount).toBe(200_000)
+  })
+})
+
+// ─── 17. Paternal half siblings ──────────────────────────────────────────────
+
+describe('paternal half sibling shares', () => {
+  it('sole paternal half sister gets 1/2 when asaba present', () => {
+    const phs = makeHeir('paternal_half_sister')
+    const uncle = makeHeir('paternal_uncle')
+    const c = makeCase('hanafi', [phs, uncle])
+    const result = calculate(c)
+    expect(fractionStr(result.shares, phs)).toBe('1/2')
+  })
+
+  it('paternal half brother and sister split residue 2:1', () => {
+    const phb = makeHeir('paternal_half_brother')
+    const phs = makeHeir('paternal_half_sister')
+    const c = makeCase('hanafi', [phb, phs])
+    const result = calculate(c)
+    expect(fractionStr(result.shares, phb)).toBe('2/3')
+    expect(fractionStr(result.shares, phs)).toBe('1/3')
+  })
+})
