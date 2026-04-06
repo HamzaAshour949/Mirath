@@ -2,9 +2,253 @@
 import Layout from '../../layouts/Layout.astro'
 ---
 <Layout title="ميراث — حاسبة المواريث الإسلامية" lang="ar">
-  <main>
+  <style>
+    :root {
+      --color-bg: #0f0f0f;
+      --color-surface: #1a1a1a;
+      --color-border: #2a2a2a;
+      --color-text: #e8e8e8;
+      --color-muted: #888888;
+      --color-accent: #c9a96e;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Noto Naskh Arabic', serif;
+      margin: 0;
+    }
+    .hero {
+      text-align: center;
+      padding: 120px 24px 80px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--color-muted);
+      line-height: 2;
+      margin-bottom: 40px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-accent);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      min-height: 52px;
+      padding: 0 32px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .hero-cta:hover { opacity: 0.88; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .feature {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 32px;
+    }
+    .feature h3 {
+      color: var(--color-accent);
+      font-size: 1.125rem;
+      margin-bottom: 8px;
+    }
+    .feature p {
+      color: var(--color-muted);
+      font-size: 0.9375rem;
+      line-height: 1.8;
+    }
+    .pricing {
+      text-align: center;
+      padding: 80px 24px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .pricing h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .pricing-card {
+      background: var(--color-surface);
+      border: 2px solid var(--color-accent);
+      border-radius: 12px;
+      padding: 48px 40px;
+      margin-top: 32px;
+    }
+    .pricing-card .price {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+    .pricing-card .price-note {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-top: 4px;
+    }
+    .pricing-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0;
+      text-align: right;
+    }
+    .pricing-card li {
+      padding: 8px 0;
+      color: var(--color-text);
+      font-size: 0.9375rem;
+    }
+    .pricing-card li::before {
+      content: '✓ ';
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+    .buy-btn {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-accent);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      min-height: 52px;
+      padding: 0 40px;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .buy-btn:hover { opacity: 0.88; }
+    .buy-crypto {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.9375rem;
+      min-height: 44px;
+      padding: 0 24px;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .buy-crypto:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted);
+      font-size: 0.8125rem;
+    }
+    .lang-toggle {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.875rem;
+      min-height: 44px;
+      padding: 0 16px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+
+  <a href="/" class="lang-toggle">English</a>
+
+  <section class="hero">
     <h1>ميراث</h1>
-    <p>حاسبة المواريث الإسلامية الاحترافية للمذاهب الأربعة.</p>
-    <!-- TODO: implement Arabic landing page -->
-  </main>
+    <p>
+      حاسبة المواريث الإسلامية الاحترافية للمذاهب الأربعة.
+      مصممة للعلماء والمحامين والموثقين والمستشارين الأسريين
+      الذين يتعاملون مع تقسيم التركات بدقة واحترافية.
+    </p>
+    <a href="#pricing" class="hero-cta">احصل على ميراث</a>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h3>المذاهب الأربعة</h3>
+      <p>حسابات شاملة وفقاً للمذاهب الحنفي والمالكي والشافعي والحنبلي بدقة علمية تامة.</p>
+    </div>
+    <div class="feature">
+      <h3>تقارير احترافية</h3>
+      <p>إنشاء تقارير PDF و DOCX بالعربية والإنجليزية. مناسبة للتقديم للمحاكم والتوثيق القانوني.</p>
+    </div>
+    <div class="feature">
+      <h3>شجرة العائلة التفاعلية</h3>
+      <p>محرر شجرة عائلة تفاعلي يعمل باللمس. عرض علاقات الورثة بنظرة واحدة.</p>
+    </div>
+    <div class="feature">
+      <h3>سطح المكتب والأجهزة اللوحية</h3>
+      <p>تطبيق أصلي لأنظمة macOS و Windows و Linux والأجهزة اللوحية. يعمل بدون إنترنت بعد التفعيل.</p>
+    </div>
+    <div class="feature">
+      <h3>العربية والإنجليزية</h3>
+      <p>دعم كامل للغة العربية واتجاه النص من اليمين لليسار بخط النسخ العربي. تبديل فوري بين اللغات.</p>
+    </div>
+    <div class="feature">
+      <h3>آمن وخاص</h3>
+      <p>القضايا مشفرة بـ AES-256 ومخزنة محلياً. لا اعتماد على السحابة. بياناتك تبقى على جهازك.</p>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <h2>شراء لمرة واحدة</h2>
+    <p style="color: var(--color-muted);">بدون اشتراك. بدون رسوم متكررة. ادفع مرة واحدة واستخدم للأبد.</p>
+    <div class="pricing-card">
+      <div class="price">$49</div>
+      <div class="price-note">لكل جهاز — ترخيص مدى الحياة</div>
+      <ul>
+        <li>المذاهب الأربعة</li>
+        <li>تقارير PDF و DOCX</li>
+        <li>العربية والإنجليزية</li>
+        <li>سطح المكتب والأجهزة اللوحية</li>
+        <li>يعمل بدون إنترنت</li>
+        <li>تحديثات مجانية</li>
+      </ul>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <a href="#" class="buy-btn" id="stripe-buy">شراء ببطاقة الدفع</a>
+        <a href="#" class="buy-crypto" id="crypto-buy">الدفع بـ USDC</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© ٢٠٢٦ ميراث. صُنع للمتخصصين الذين يخدمون العائلات.</p>
+  </footer>
+
+  <script>
+    document.getElementById('stripe-buy')?.addEventListener('click', async (e) => {
+      e.preventDefault()
+      alert('بوابة الدفع ببطاقة قريباً.')
+    })
+
+    document.getElementById('crypto-buy')?.addEventListener('click', async (e) => {
+      e.preventDefault()
+      alert('الدفع بـ USDC قريباً.')
+    })
+  </script>
 </Layout>

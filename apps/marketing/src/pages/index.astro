@@ -2,9 +2,257 @@
 import Layout from '../layouts/Layout.astro'
 ---
 <Layout title="Mirath — Islamic Inheritance Calculator">
-  <main>
+  <style>
+    :root {
+      --color-bg: #0f0f0f;
+      --color-surface: #1a1a1a;
+      --color-border: #2a2a2a;
+      --color-text: #e8e8e8;
+      --color-muted: #888888;
+      --color-accent: #c9a96e;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+    }
+    .hero {
+      text-align: center;
+      padding: 120px 24px 80px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--color-muted);
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-accent);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      min-height: 52px;
+      padding: 0 32px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .hero-cta:hover { opacity: 0.88; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .feature {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 32px;
+    }
+    .feature h3 {
+      color: var(--color-accent);
+      font-size: 1.125rem;
+      margin-bottom: 8px;
+    }
+    .feature p {
+      color: var(--color-muted);
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+    .pricing {
+      text-align: center;
+      padding: 80px 24px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .pricing h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .pricing-card {
+      background: var(--color-surface);
+      border: 2px solid var(--color-accent);
+      border-radius: 12px;
+      padding: 48px 40px;
+      margin-top: 32px;
+    }
+    .pricing-card .price {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+    .pricing-card .price-note {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-top: 4px;
+    }
+    .pricing-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0;
+      text-align: left;
+    }
+    .pricing-card li {
+      padding: 8px 0;
+      color: var(--color-text);
+      font-size: 0.9375rem;
+    }
+    .pricing-card li::before {
+      content: '✓ ';
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+    .buy-btn {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-accent);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      min-height: 52px;
+      padding: 0 40px;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .buy-btn:hover { opacity: 0.88; }
+    .buy-crypto {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.9375rem;
+      min-height: 44px;
+      padding: 0 24px;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .buy-crypto:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted);
+      font-size: 0.8125rem;
+    }
+    .lang-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.875rem;
+      min-height: 44px;
+      padding: 0 16px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+
+  <a href="/ar/" class="lang-toggle">العربية</a>
+
+  <section class="hero">
     <h1>Mirath</h1>
-    <p>Professional Islamic inheritance calculator for all four Sunni madhabs.</p>
-    <!-- TODO: implement landing page, pricing, purchase flow (Stripe + x402) -->
-  </main>
+    <p>
+      Professional Islamic inheritance calculator for all four Sunni madhabs.
+      Designed for scholars, lawyers, notaries, and family advisors who handle
+      estate division with precision and confidence.
+    </p>
+    <a href="#pricing" class="hero-cta">Get Mirath</a>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h3>All Four Madhabs</h3>
+      <p>Comprehensive calculations following Hanafi, Maliki, Shafi'i, and Hanbali jurisprudence with full scholarly accuracy.</p>
+    </div>
+    <div class="feature">
+      <h3>Professional Reports</h3>
+      <p>Generate PDF and DOCX reports in Arabic and English. Suitable for court submissions and legal documentation.</p>
+    </div>
+    <div class="feature">
+      <h3>Visual Family Tree</h3>
+      <p>Interactive, touch-friendly family tree editor. See heir relationships at a glance with connected nodes.</p>
+    </div>
+    <div class="feature">
+      <h3>Desktop & Tablet</h3>
+      <p>Native app for macOS, Windows, Linux, iOS and Android tablets. Works offline after activation.</p>
+    </div>
+    <div class="feature">
+      <h3>Arabic & English</h3>
+      <p>Full RTL Arabic support with Noto Naskh Arabic font. Switch languages instantly.</p>
+    </div>
+    <div class="feature">
+      <h3>Secure & Private</h3>
+      <p>Cases are encrypted with AES-256 and stored locally. No cloud dependency. Your data stays on your device.</p>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <h2>One-Time Purchase</h2>
+    <p style="color: var(--color-muted);">No subscription. No recurring fees. Pay once, use forever.</p>
+    <div class="pricing-card">
+      <div class="price">$49</div>
+      <div class="price-note">per device — lifetime license</div>
+      <ul>
+        <li>All four madhabs</li>
+        <li>PDF & DOCX reports</li>
+        <li>Arabic & English</li>
+        <li>Desktop & tablet</li>
+        <li>Offline capable</li>
+        <li>Free updates</li>
+      </ul>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <a href="#" class="buy-btn" id="stripe-buy">Buy with Card</a>
+        <a href="#" class="buy-crypto" id="crypto-buy">Pay with USDC</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2026 Mirath. Built for professionals who serve families.</p>
+  </footer>
+
+  <script>
+    // Stripe checkout integration placeholder
+    document.getElementById('stripe-buy')?.addEventListener('click', async (e) => {
+      e.preventDefault()
+      // TODO: call Stripe checkout session API
+      alert('Stripe checkout coming soon.')
+    })
+
+    // x402/USDC payment placeholder
+    document.getElementById('crypto-buy')?.addEventListener('click', async (e) => {
+      e.preventDefault()
+      // TODO: call x402 payment flow
+      alert('USDC payment coming soon.')
+    })
+  </script>
 </Layout>
