@@ -3,11 +3,34 @@ interface Props {
   onChange: (locale: 'en' | 'ar') => void
 }
 
-/**
- * Switches between English and Arabic.
- * Toggling to 'ar' should also set dir="rtl" on the root element.
- * TODO: implement.
- */
-export function LanguageToggle(_props: Props) {
-  return null
+export function LanguageToggle({ locale, onChange }: Props) {
+  const next = locale === 'en' ? 'ar' : 'en'
+
+  function handleToggle() {
+    const root = document.documentElement
+    root.dir = next === 'ar' ? 'rtl' : 'ltr'
+    root.lang = next
+    onChange(next)
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      aria-label={locale === 'en' ? 'Switch to Arabic' : 'التبديل إلى الإنجليزية'}
+      style={{
+        background: 'transparent',
+        border: '1px solid var(--color-border, #2a2a2a)',
+        borderRadius: 'var(--radius, 8px)',
+        color: 'var(--color-text, #e8e8e8)',
+        cursor: 'pointer',
+        fontSize: '0.9375rem',
+        fontWeight: 500,
+        minHeight: 'var(--touch-target, 44px)',
+        minWidth: 'var(--touch-target, 44px)',
+        padding: '0 16px',
+      }}
+    >
+      {locale === 'en' ? 'العربية' : 'English'}
+    </button>
+  )
 }
