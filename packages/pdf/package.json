@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@mirath/core": "workspace:*",
+    "@mirath/i18n": "workspace:*",
     "pdfmake": "^0.2.10"
   },
   "devDependencies": {
